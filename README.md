@@ -39,7 +39,7 @@ These scripts have been written to be capable of running *relatively* quickly on
 `[film title]_clip[number]Dist[XX]AnnBnnCnnDnnEnn'`  
 where XX can be e**X**treme **C**lose-up, **C**lose-**U**p, **M**edium **C**lose-up, **M**edium **S**hot, or **M**edium **L**ong; and where Ann, Bnn, Cnn ... refer to the locations of the up to 5 most-prominent subjects in the shot. The 'nn' portion is of the structure X#, where # is a letter between A and I, representing the 9 sectors of a typical rule of thirds-divided frame.  
 Or, less confusingly, if the 345th clip in Martin Scorsese's film *King of Comedy* had a medium shot distance, with its largest subject located at middle-center, its second-largest at mid-left, its third-largest at bottom-right, with no other detected subjects:  
-`MartinScorsese_KingofComedy_clip345DistMSAXEBXDCXIDnnEnn'`  
+`MartinScorsese_KingofComedy_clip345DistMSAXEBXDCXIDnnEnn`  
 Optionally, this script can also provide us illustrative images for each shot by averaging the pixel data and drawing our face detection bounding boxes over the resulting incredibly blurry and strange output image.
   
 **_Cdelta_testing.py_** prepares a clean version of our composition strings, separate from the identifying film information. It then uses delta calculations to provide statistical analyses of our corpus based on a number of potential parameters, returns dendrograms of each result, and separates out the parameters that returned the best V Measure.
