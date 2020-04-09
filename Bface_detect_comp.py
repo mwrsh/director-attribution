@@ -56,16 +56,16 @@ st_dt_obj = datetime.datetime.now()  # Start time.
 shot_ratios = [0.90, 0.65, 0.45, 0.30, 0.15]
 shot_names = ['XC', 'CU', 'MC', 'MS', 'ML']
 """
-My own testing, as well as parallel testing by the DVT team, has shown that 
-the ratio of the largest face's bounding box to the height of the image 
-predicts shot distance, with the cut-offs above corresponding to XCU, CU, 
-MCU, M, and ML, respectively. More-distant shots cannot be consistently 
+My own testing, as well as parallel testing by the DVT team, has shown that
+the ratio of the largest face's bounding box to the height of the image
+predicts shot distance, with the cut-offs above corresponding to XCU, CU,
+MCU, M, and ML, respectively. More-distant shots cannot be consistently
 tracked using face boxes.
 
 We cannot use bounding boxes from object detection for these purposes, as the
 dimensions of a person's bounding box are not invariant enough.
 
-If this script is modified to use a different detection algorithm, 
+If this script is modified to use a different detection algorithm,
 the ratios must be re-tested and modified.
 """
 
@@ -204,7 +204,7 @@ def poi_gen9(image, out_list):
     ......4......|......5......|......6......
     .............|.............|.............
     -------------+-------------+-------------
-    .............|.............|............. 
+    .............|.............|.............
     ......7......|......8......|......9......
     .............|.............|.............
 
@@ -252,6 +252,8 @@ def nearest_val(calc_vals, val):
 shot_list = [os.path.join(full_file_path, shot) for shot in list(subdirs(
              full_file_path))]
 
+total_shots = len(shot_list)
+
 # We generate our output directory now, since otherwise it would've gotten
 # caught up in the list comprehension above.
 if not os.path.exists(out_dir):
@@ -274,7 +276,7 @@ for frame in test_open:
 
 for shot_idx, shot in enumerate(shot_list):
     file_name = os.path.basename(os.path.normpath(shot))
-    print('Working on shot {}.'.format((shot_idx + 1)))
+    print('Working on shot {} of {}.'.format((shot_idx + 1), total_shots))
 
     # Collect all .png files from the folder
     frame_list = []
@@ -363,6 +365,22 @@ for shot_idx, shot in enumerate(shot_list):
     for face in avg_list:
         position = nearest_coord(poi_list, face[2])
         pos_2dig = str(position).zfill(2)
+        pos_2dig = pos_2dig.replace('0', 'X')
+        pos_2dig = pos_2dig.replace('1', 'A')
+        pos_2dig = pos_2dig.replace('2', 'B')
+        pos_2dig = pos_2dig.replace('3', 'C')
+        pos_2dig = pos_2dig.replace('4', 'D')
+        pos_2dig = pos_2dig.replace('5', 'E')
+        pos_2dig = pos_2dig.replace('6', 'F')
+        pos_2dig = pos_2dig.replace('7', 'G')
+        pos_2dig = pos_2dig.replace('8', 'H')
+        pos_2dig = pos_2dig.replace('9', 'I')
+        # We cannot process the strings as 'words' without replacing their
+        # numerical parts with letters.  I still want to keep them numerical up
+        # until this point, because I believe there may be some use in the
+        # future of treating positioning as something that may be treated
+        # arithmetically.
+
         position_list.append(pos_2dig)
 
     while len(position_list) < max_count:
@@ -389,7 +407,7 @@ for shot_idx, shot in enumerate(shot_list):
         draw_img.ellipse(circ, outline=(128, 128, 128))
 
     for face_dims in avg_list:
-        # Calculate rectangle coordinates from the centroid and width, height.
+        # Calculate rectangle coordinates from centroid and width, height.
         x_start = int(face_dims[2][0] - int(0.5 * face_dims[1]))
         x_end = int(face_dims[2][0] + int(0.5 * face_dims[1]))
         y_start = int(face_dims[2][1] - int(0.5 * face_dims[0]))
