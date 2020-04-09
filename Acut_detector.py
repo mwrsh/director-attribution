@@ -1,9 +1,8 @@
 """
-This script is the first step in our workflow.  Given a color video file
-(as of 03.26.2020, does not work with B&W movies), this script will provide
-5 60-second clips that are by default set to 1/6th, 2/6th, 3/6th ... of the
-way through the file.  The user then views the clips and manually counts the
-number of cuts in it.
+This script is the first step in our workflow.  Given a video file this
+script will provide 5 60-second clips that are by default set to 1/6th,
+2/6th, 3/6th ... of the way through the file.  The user then views the clips
+and manually counts the number of cuts in it.
 
 After the five clips have been manually analysed, the script runs through
 potential parameter settings for each clip until it reaches the setting that
@@ -25,7 +24,7 @@ containing one screenshot for each 0.5 seconds of footage.  This will make
 the next step in our workflow doable in a manageable timeframe for users
 with lower-powered setups like, say, my 2018 MacBook Air.
 
-After running this script, uusers should manually remove non-content shot
+After running this script, users should manually remove non-content shot
 directories from the output folder (e.g. credits, previews, commercials, etc.).
 
 Generally, when there are errors in the cut detection process, they will be
@@ -48,116 +47,6 @@ from dvt.core import DataExtraction, FrameInput
 from moviepy.editor import VideoFileClip
 
 from statistics import mean
-
-num_processes = mp.cpu_count()
-
-st_dt_obj = datetime.datetime.now()
-
-ap = argparse.ArgumentParser()
-ap.add_argument('-f', '--filepath', required=True,
-                help='Path to the file.')
-ap.add_argument('-a', '--aseg',
-                help='Time in seconds at which to start first test clip. \
-                        default is 1/6th of the way through file.')
-ap.add_argument('-b', '--bseg',
-                help='Time in seconds at which to start second test clip. \
-                        default is 1/3rd of the way through file.')
-ap.add_argument('-c', '--cseg',
-                help='Time in seconds at which to start third test clip. \
-                        default is 1/2 of the way through file.')
-ap.add_argument('-d', '--dseg',
-                help='Time in seconds at which to start fourth test clip. \
-                        default is 2/3rd of the way through file.')
-ap.add_argument('-e', '--eseg',
-                help='Time in seconds at which to start fifth test clip. \
-                        default is 5/6th of the way through file.')
-ap.add_argument('-l', '--length',
-                help='Time in seconds for the test clips. Default is 60.')
-args = vars(ap.parse_args())
-
-inp_file = str(args['filepath'])
-full_file_name = os.path.basename(inp_file)
-full_file_dir = os.path.dirname(inp_file)
-orig, ext = full_file_name.split('.')
-full_film = VideoFileClip(inp_file)
-full_copy = full_film.copy()
-
-test_dir = os.path.join(full_file_dir, orig)
-out_dir = os.path.join(full_file_dir, '{}_out'.format(orig))
-os.makedirs(test_dir, exist_ok=True)
-os.makedirs(out_dir, exist_ok=True)
-
-# I  have no idea how else to get the framerate.
-cap = cv2.VideoCapture(inp_file)
-fr_wid = cv2.CAP_PROP_FRAME_WIDTH
-fr_hgt = cv2.CAP_PROP_FRAME_HEIGHT
-frate = cap.get(cv2.CAP_PROP_FPS)
-f_length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-s_length = f_length / frate
-cap.release()
-# Sorry.
-
-quant_thresh = 40
-# As of 03.26.2020, I am still unclear on what quantiles do in DVT's
-# DiffAnnotator.  However, for now it is not an actual variable in defining our
-# cuts.  This may change in the future.
-
-if isinstance(args['aseg'], int):
-    aseg_start = int(args['aseg'])
-else:
-    aseg_start = int(s_length / 6)
-
-if isinstance(args['bseg'], int):
-    bseg_start = int(args['bseg'])
-else:
-    bseg_start = int(2 * (s_length / 6))
-
-if isinstance(args['cseg'], int):
-    cseg_start = int(args['cseg'])
-else:
-    cseg_start = int(3 * (s_length / 6))
-
-if isinstance(args['dseg'], int):
-    dseg_start = int(args['dseg'])
-else:
-    dseg_start = int(4 * (s_length / 6))
-
-if isinstance(args['eseg'], int):
-    eseg_start = int(args['eseg'])
-else:
-    eseg_start = int(5 * (s_length / 6))
-
-if isinstance(args['length'], int):
-    seg_dur = int(args['length'])
-else:
-    seg_dur = 60
-
-clip_starts = [aseg_start, bseg_start, cseg_start, dseg_start, eseg_start]
-
-time_stamps = []
-
-test_clips = []
-
-for start in clip_starts:
-    tup = (start, (start + seg_dur))
-    time_stamps.append(tup)
-
-os.chdir(test_dir)
-
-for idx, tup in enumerate(time_stamps):
-    # For testing, save time by commenting out the lines starting with
-    # 'test_seg' in this loop.
-    test_seg = full_film.subclip(t_start=tup[0], t_end=tup[1])  # This one.
-    seg_name = 'seg{}.mp4'.format((idx + 1))
-    seg_path = os.path.join(test_dir, seg_name)
-    print(seg_path)
-    test_seg.write_videofile(seg_name, fps=frate, threads=4, audio=False,
-                             codec=None, preset='ultrafast',
-                             logger=None)  # And this one.
-    test_clips.append(seg_path)
-
-
-user_count_list = []
 
 
 def manual_cut_count(man_cut_vid, out_list):
@@ -227,12 +116,12 @@ def manual_cut_count(man_cut_vid, out_list):
                 print('Ok! Will test thresholds until match is found.')
                 break
             else:
-                print('Ok. Please modify your entry.')
+                print('Ok. Please modify your entry. ')
                 while True:
                     try:
-                        user_count = int(input('Enter number of shots.'))
+                        user_count = int(input('Enter number of shots. '))
                     except ValueError:
-                        print('Please enter an integer value.')
+                        print('Please enter an integer value. ')
                         continue
                     else:
                         break
@@ -277,6 +166,120 @@ def find_cuts(find_cut_extract, find_cut_val):
     return cut_key, cut_count, cut_tups, cut_fs
 
 
+num_processes = mp.cpu_count()
+
+st_dt_obj = datetime.datetime.now()
+
+ap = argparse.ArgumentParser()
+ap.add_argument('-f', '--filepath', required=True,
+                help='Path to the file.')
+ap.add_argument('-p', '--palette', choices=['c', 'b'], required=True,
+                help='Enter C for color, B for black and white.')
+ap.add_argument('-a', '--aseg', type=int,
+                help='Time in seconds at which to start first test clip. \
+                        default is 1/6th of the way through file.')
+ap.add_argument('-b', '--bseg', type=int,
+                help='Time in seconds at which to start second test clip. \
+                        default is 1/3rd of the way through file.')
+ap.add_argument('-c', '--cseg', type=int,
+                help='Time in seconds at which to start third test clip. \
+                        default is 1/2 of the way through file.')
+ap.add_argument('-d', '--dseg', type=int,
+                help='Time in seconds at which to start fourth test clip. \
+                        default is 2/3rd of the way through file.')
+ap.add_argument('-e', '--eseg', type=int,
+                help='Time in seconds at which to start fifth test clip. \
+                        default is 5/6th of the way through file.')
+ap.add_argument('-l', '--length', type=int, default=60,
+                help='Time in seconds for the test clips. Default is 60.')
+args = vars(ap.parse_args())
+
+inp_file = str(args['filepath'])
+full_file_name = os.path.basename(inp_file)
+full_file_dir = os.path.dirname(inp_file)
+orig, ext = full_file_name.split('.')
+full_film = VideoFileClip(inp_file)
+full_copy = full_film.copy()
+
+test_dir = os.path.join(full_file_dir, orig)
+os.makedirs(test_dir, exist_ok=True)
+
+# While DVT can grab framerate as well, this works quite a bit quicker for
+# our purposes.
+cap = cv2.VideoCapture(inp_file)
+fr_wid = cv2.CAP_PROP_FRAME_WIDTH
+fr_hgt = cv2.CAP_PROP_FRAME_HEIGHT
+frate = cap.get(cv2.CAP_PROP_FPS)
+f_length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+s_length = f_length / frate
+cap.release()
+
+if args['palette'] == 'b':
+    quant_thresh = 85
+else:
+    quant_thresh = 40
+
+'''
+A quantile threshold of 40% works well for color films.  A quantile
+threshold of 85% is optimum for black and white films, according to DVT
+co-author Dr. Taylor Arnold, because any two frames in a black and white
+film, in the HSV space, already share 67% of their values, since the hue
+and saturation are always the same.
+https://github.com/distant-viewing/dvt/issues/24
+'''
+
+if isinstance(args['aseg'], int):
+    aseg_start = int(args['aseg'])
+else:
+    aseg_start = int(s_length / 6)
+
+if isinstance(args['bseg'], int):
+    bseg_start = int(args['bseg'])
+else:
+    bseg_start = int(2 * (s_length / 6))
+
+if isinstance(args['cseg'], int):
+    cseg_start = int(args['cseg'])
+else:
+    cseg_start = int(3 * (s_length / 6))
+
+if isinstance(args['dseg'], int):
+    dseg_start = int(args['dseg'])
+else:
+    dseg_start = int(4 * (s_length / 6))
+
+if isinstance(args['eseg'], int):
+    eseg_start = int(args['eseg'])
+else:
+    eseg_start = int(5 * (s_length / 6))
+
+seg_dur = int(args['length'])
+
+clip_starts = [aseg_start, bseg_start, cseg_start, dseg_start, eseg_start]
+
+time_stamps = []
+
+test_clips = []
+
+for start in clip_starts:
+    tup = (start, (start + seg_dur))
+    time_stamps.append(tup)
+
+os.chdir(test_dir)
+
+for idx, tup in enumerate(time_stamps):
+    # For testing, save time by commenting out the lines starting with
+    # 'test_seg' in this loop.
+    test_seg = full_film.subclip(t_start=tup[0], t_end=tup[1])  # This one.
+    seg_name = 'seg{}.mp4'.format((idx + 1))
+    seg_path = os.path.join(test_dir, seg_name)
+    print(seg_path)
+    test_seg.write_videofile(seg_name, fps=frate, threads=4, audio=False,
+                             codec=None, preset='ultrafast',
+                             logger=None)  # And this one.
+    test_clips.append(seg_path)
+
+user_count_list = []
 final_vals = []
 
 for vid in test_clips:
@@ -284,13 +287,13 @@ for vid in test_clips:
 
 # For testing, comment out the 'for vid in test_clips' loop above and put your
 # calculated counts in this list below.
-# user_count_list = []
+# user_count_list = [4, 3, 7, 5, 3]
 
 postcount_dt_obj = datetime.datetime.now()
 
 for idx, clip in enumerate(test_clips):
     dex_obj = dextra_diff(clip)
-    val = 1
+    val = 0
     found = False
     dets = []
 
@@ -312,7 +315,7 @@ for idx, clip in enumerate(test_clips):
             dets.append(det_cuts)
             val += 1
         elif det_cuts < user_count_list[idx]:
-            if val == 1:
+            if val == 0:
                 final_val = val
             else:
                 search = dets[-1]
